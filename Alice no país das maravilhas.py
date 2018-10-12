@@ -7,6 +7,7 @@
 def n_palabras(x):
     import urllib2
     import string
+    import re
 
     archivo = urllib2.urlopen(x)
     libro = open("alice.txt", "w")
@@ -15,6 +16,9 @@ def n_palabras(x):
 
     libro = open("alice.txt", "r")
     alice = libro.read()
+    libro.close()
+
+    alice = re.sub("[^\w]", " ", alice)
     alice = alice.lower()
 
     for a in string.punctuation:
@@ -29,9 +33,18 @@ def n_palabras(x):
         else:
             diccionario[a] += 1
 
-    print diccionario
-    libro.close()
+    diccionario_al_reves = {}
+    for n in diccionario:
+        diccionario_al_reves[diccionario[n]] = n
 
-n_palabras("http://www.gutenberg.org/files/11/11-0.txt")
+    las_mas_comunes = {}
+    lista_key = sorted(diccionario_al_reves.keys(), reverse=True)
 
-#
+    for n in range(5):
+        las_mas_comunes[lista_key[n]] = diccionario_al_reves[lista_key[n]]
+
+    las_mas_comunes_al_reves = {}
+    for n in las_mas_comunes:
+        las_mas_comunes_al_reves [las_mas_comunes[n]] = n
+
+    return "Las 5 palabras más comunes en ese libro son (palabra:ocurrencia): %s" %las_mas_comunes_al_reves
