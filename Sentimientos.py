@@ -58,6 +58,7 @@ def dic_sent():
             sent_dic[a[0]] = int(a[1])
     return sent_dic
 
+
 def punctuacion_tweets():
     diccionario = dic_sent()
     sentimientos = diccionario.keys()
@@ -98,5 +99,6 @@ def salvar_archivo():
         csv += line
 
     archivo.write(csv)
+
 
 salvar_archivo()
