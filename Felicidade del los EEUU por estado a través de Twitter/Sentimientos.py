@@ -58,7 +58,6 @@ def dic_sent():
             sent_dic[a[0]] = int(a[1])
     return sent_dic
 
-
 def punctuacion_tweets():
     diccionario = dic_sent()
     sentimientos = diccionario.keys()
@@ -95,10 +94,9 @@ def salvar_archivo():
     archivo = open("Sentimientos_por_estado.csv", "w")
     csv = "Estado,Punctuacion\n"
     for estado, punctuacion in diccionario_estados.items():
-        line = "{},{}\n".format(estado.upper(), punctuacion)
+        line = "%s, %d\n" %(estado.upper(), punctuacion)
         csv += line
 
     archivo.write(csv)
-
 
 salvar_archivo()

@@ -30,7 +30,6 @@ estados_centro = [["AL", "Alabama", 32.7794, -86.8287], ["AK", "Alaska", 64.0685
 
 def mapa_sentimiento():
     estados_geo = "us-states.json"
-
     sentimientos = "Sentimientos_por_estado.csv"
     sentimientos_datos = pandas.read_csv(sentimientos)
 
@@ -38,14 +37,14 @@ def mapa_sentimiento():
 
     mapa.choropleth(
         geo_data=estados_geo,
-        name='sentimientos',
+        name="Sentimientos",
         data=sentimientos_datos,
-        columns=['Estado', 'Punctuacion'],
-        key_on='feature.id',
-        fill_color='YlOrRd',
+        columns=["Estado", "Punctuacion"],
+        key_on="feature.id",
+        fill_color="YlOrRd",
         fill_opacity=0.7,
         line_opacity=0.2,
-        legend_name='Felicidad por Estado'
+        legend_name="Felicidad por Estado"
     )
 
     for estado in estados_centro:
@@ -53,15 +52,16 @@ def mapa_sentimiento():
         nombre = estado[1]
         lat = float(estado[2])
         lon = float(estado[3])
-        tooltip = ''
+        leyenda = ""
+        tooltip = "Click para ver detalles"
         for e in sentimientos_datos.get_values():
             if e[0] == nombre_curto:
-                tooltip = e[1]
-        folium.Marker([lat, lon], popup="<i>En {} el score de felicidad es {}</i>".format(nombre, tooltip), tooltip=tooltip).add_to(mapa)
+                leyenda = e[1]
+        folium.Marker([lat, lon], popup="<i>En %s la puntuacion de felicidad es %s</i>" %(nombre, leyenda), tooltip=tooltip).add_to(mapa)
 
     folium.LayerControl().add_to(mapa)
 
-    mapa.save('mapa.html')
+    mapa.save("Mapa_del_sentimiento.html")
 
 
 mapa_sentimiento()
