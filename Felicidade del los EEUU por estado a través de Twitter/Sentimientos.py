@@ -100,3 +100,13 @@ def salvar_archivo():
     archivo.write(csv)
 
 salvar_archivo()
+
+
+def ranking_estados():
+    estados = punctuacion_estado().items()
+    estados.sort(key=lambda estados: estados[1], reverse=True)
+    mas_felices = ""
+    for estado in range(5):
+        mas_felices += str(estados[estado])
+
+    return "Los cinco estados más felices son (estado, puntuacion): ", mas_felices
