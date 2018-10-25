@@ -1,0 +1,26 @@
+﻿En concreto la competición es:
+https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
+Para la competición, los usuarios deben aprender un clasificador en el sistema que quieran (R, Weka, Python...)
+En la carpeta kaggle, tenéis código en R que permite 
+realizar predicciones con "caret".
+En clase conté el funcionamiento de Weka. En el fichero de poliformat casas.zip hay instrucciones para aprender un clasificador 
+con weka. (no es obligatorio usar weka)
+Los pasos son algo costosos:
+1 Convertir el fichero train csv a csv adecuado para weka 
+(3 primeras instrucciones de filetoweka.R)
+2 Convertir el fichero test csv a csv adecuado para weka ( instrucciones 4 a 9 de filetoweka.R)
+3 cargar fichero train y 
+test en weka y convertir a arff. Salvar los ficheros.
+4 copiar cabecera (las líneas que comienzan con @) del fichero train.arff a test.arff
+5 aprender clasificadores 
+con weka desde el fichero de train.arff
+6 realizar las predicciones en weka:
+pestaña classify-> supplied test set-> cargar test.arff,
+seleccionar clasificador 
+aprendido-> botón derecha " Re-evaluate model..."
+seleccionar clasificador aprendido-> botón derecha "visualize classifier errors" ->save "preds.arff"
+7 abrir 
+preds.arff, eliminar cabecera, guardar como "predsweka.csv"
+8 preparar predicciones para kaggle. (ejecutar 4 últimas instrucciones de R)
+9 subir mispreds.csv a kaggle.

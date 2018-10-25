@@ -1,0 +1,10 @@
+﻿Ejercicio
+1. Cuál fue el peor dí­a ?(día con más congestiones). Se puede utilizar Date$yday
+
+as.POSIXlt("2015-1-5")$yday # 4
+## [1] 4
+
+2. Cuál es el peor tramo? (Tramo con más proporción de congestiones).
+3. Cuál es peor y el mejor dí­a de la semana? . Se puede utilizar Date$wday
+4. Las fallas incremetan las congestiones?. Considerar Fallas del 16 al 19 de marzo (incluidos)
+5. Realizar un estudio sobre los periodos más frecuentes de congestión considerando horas y días de la semana.

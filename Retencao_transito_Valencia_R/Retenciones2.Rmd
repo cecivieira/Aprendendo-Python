@@ -1,0 +1,223 @@
+---
+title: "Práctica en R: Estudio de las retenciones en Valencia"
+output: html_document
+---
+
+### Asignatura de "Programación de sistema: R" - Master Big Data - UPV
+
+# Cesar Ferri- Beatriz de la Blanca
+
+El objetivo de esta práctica es utilizar las capacidades de R en el tratamiento de los datos para realizar un estudio de las congestiones de tráfico de Valencia. Los datos que utilizaremos se han obtenido del portal de datos abiertos del Ayuntamiento de Valencia.
+
+# Carga y estructura de los datos
+
+Cargamos los datos. 
+
+Utilizaremos la función **objects()** para averiguar los nombres de las variables cargadas;
+
+```{r}
+load("totr.Rdata")
+objects()
+```
+
+Durante toda la práctica utilizaremos el nombre "dat" para referirnos a los datos
+
+```{r}
+dat <- tot
+```
+
+Le echamos un vistazo a los datos:
+
+```{r}
+dim(dat)
+```
+
+Es decir, tenemos más de 1,9 millones de observaciones de 8 variables.
+
+```{r}
+str(dat)
+head(dat)
+```
+
+Las variables de nuestros datos;
+
+* Definen la fecha y hora; "any", "mes", "dia", "hora", "minut"
+* Indican una localizacion; "id", "carrer"
+* Muestran el estado del tráfico; "estat"
+
+***
+
+Valores que toman las variables temporales:
+
+```{r}
+unique(dat$any)
+unique(dat$mes)
+unique(dat$dia)
+```
+
+Nos indican que tenemos datos sobre los días de febrero, marzo y abril de 2015 (aunque no necesariamente todos).
+
+```{r}
+sort(unique(dat$hora))
+unique(dat$min)
+```
+
+Nos inclinan a pensar que tenemos datos de cada cuarto de hora (no necesariamente todos los días ni todas las horas).
+
+***
+
+Sobre las variables que identifican una localización;
+
+La variable "id" es un identificador de la calle, cuyo nombre se guarda en "carrer". Entonces, deben coincidir el número de "id" distintos con el número de casos "carrer" diferentes;
+
+```{r}
+# sanity-check
+nids <- length(unique(dat$id))
+ncarrers <- length(unique(dat$carrer))
+stopifnot(nids == ncarrers)   
+nids
+```
+
+
+```{r}
+head(sort(unique(dat$carrer)),10)
+tail(sort(unique(dat$carrer)),10)
+```
+
+Vemos que algunas calles tienen de nombre "". Trataremos estos casos en la fase de limpieza.
+
+# Limpieza de los datos
+
+Realizaremos la limpieza de los datos en primer lugar. De esta manera los datos que haya que formatear ya estarán limpios y se trabajará más eficientemente al tratar menos volumen de datos.
+
+Veamos los valores que toma la variable estado;
+
+```{r}
+unique(dat$estat)
+```
+
+Sin embargo, desde el portal de datos abiertos sólo indican la leyenda de estos cuatro estados;
+
+0 -> FLUIDO  
+1 -> DENSO  
+2 -> CONGESTIONADO  
+3 -> CORTADO  
+
+Que aparecen con estas frecuencias:
+
+```{r}
+table(dat$estat)
+```
+
+Puesto que el resto de los estados son desconocidos para nosotros, vamos a juntarlo en  valor **estat=4** para indicar ESTADO DESCONOCIDO para después eliminar sus registros.
+
+```{r}
+dat[which(dat$estat>3),"estat"] <- 4
+table(dat$estat)
+```
+
+Obsérvese que todavía nos han quedado registros con estado = "". Vamos a examinar qué son.
+
+```{r}
+head(dat[which(dat$estat==""),c("dia","hora","minut","estat", "id", "carrer")])
+```
+
+Son registros que no tienen información del estado ni de la calle. También los incluimos en el estado 4 - DESCONOCIDO
+
+```{r}
+dat[which(dat$estat==""),"estat"] <- 4
+table(dat$estat)
+```
+
+Finalmente eliminamos del dataset los estados desconocidos:
+
+```{r}
+d_limpio <- subset(dat, dat$estat < 4)
+dat <- d_limpio
+table(dat$estat)
+```
+
+***
+
+ Recordemos que antes de efectuar la limpieza de la variable estado teníamos calles con valores "". Nos planteamos la posibilidad de que esos valores desconocidos sigan apareciendo;
+
+```{r}
+head(sort(unique(dat$carrer)))
+head(sort(unique(dat$id)))
+```
+
+Como vemos, junto con la limpieza de los estados anómalos también se han eliminado los datos desconocidos de las calles.
+
+```{r}
+100*(nrow(tot) - nrow(dat))/nrow(tot)  # Porcentaje de registros eliminados en la limpieza
+```
+
+> Durante la fase de limpieza se han eliminado un 8% de los registros (aproximadamente 150.000)
+
+# Formateo de los datos 
+
+En esta sección vamos a crear variables nuevas que nos servirán para más adelante;
+
+* Crearemos una cadena con la fecha formateada
+* Crearemos una variable factor del estado
+* Crearemos una variable booleana "atasco" que incluye la interpretación de lo que es "atascado" o  "congestionado"
+
+Creamos una nueva variable con la fecha formateada como "año-mes-dia";
+
+```{r}
+fecha<-paste(as.character(dat[,1]),as.character(dat[,2]),as.character(dat[,3]),sep="-")
+dat$fecha<-fecha
+min(fecha)
+max(fecha)
+head(dat)
+```
+
+Creamos una variable factor sobre el estado.  Obsérvese que no incluimos el estado 4 - DESCONOCIDO porque éste ya está eliminado de los datos.
+
+```{r}
+dat$festat <- factor(dat$estat, levels = 0:3, labels = c("Fluido", "Denso","Congestionado","Cortado"))
+head(dat)
+```
+
+Vamos a definir una variable booleana "atasco" que utilizaremos para definir cuando consideramos que la calle está atascada o congestionada. En el enunciado de la práctica indica que atasco es TRUE cuando el estado es 1 - Denso o 2 - Congestionado. Es decir;
+
+"estat" | "atasco"
+--------|---------
+0 - Fluido |  0 - No atascado
+1 - Denso  |  1 - Atascado
+2 - Congestionado | 1 - Atascado
+3 - Cortado       | 0 - No atascado
+
+
+Sin embargo, podríamos escoger otras interpretaciones, como por ejemplo;
+
+ * segunda interpretación; "atasco" = 1 si "estat" es 1 - Denso,  2 - Congestionado o 3 - Cortado
+ * tercera interpretación; "atasco" = 1 si "estat" es 2 - Congestionado o 3 - Cortado
+ * etc.
+ 
+Durante el desarrollo de este estudio *nos limitaremos a la primera interpretación.*
+
+```{r}
+atasco = rep(-1,length(dat$estat))
+atasco [which(dat$estat==1)]<-1
+atasco [which(dat$estat==2)]<-1
+atasco [which(dat$estat==3)]<-0  # NOTA: En esta interpretacion los dias cortados no serán atascos
+atasco [which(dat$estat==0)]<-0  
+dat$atasco<-atasco
+table(dat$atasco) # Si hay algún valor "-1" es que lo hemos hecho mal
+table(dat$estat)
+```
+
+
+# Ejercicios
+
+1. ¿Cuál fue el peor día ?(día con más congestiones). Se puede utilizar Date$yday 
+```{r}
+as.POSIXlt("2015-1-5")$yday # 4
+```
+2. ¿Cuál es el peor tramo? (Tramo con  más  proporción de congestiones).
+3. ¿Cuál es peor y el mejor día de la semana? .  Se puede utilizar Date$wday
+4. ¿Las fallas incremetan las congestiones?. Considerar Fallas del 16 al 19 de marzo (incluidos)
+5. Realizar un estudio sobre los periodos más frecuentes de congestión considerando horas y días de la semana.
+
+
